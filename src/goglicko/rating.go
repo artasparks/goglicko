@@ -51,7 +51,7 @@ func (r *Rating) String() string {
 // other words, find the error between this rating's values and the other
 // rating's values and make sure it's less than epsilon in absolute value.
 func (r *Rating) MostlyEquals(o *Rating, epsilon float64) bool {
-	return FloatsMostlyEqual(r.Rating, o.Rating, epsilon) &&
-		FloatsMostlyEqual(r.Deviation, o.Deviation, epsilon) &&
-		FloatsMostlyEqual(r.Volatility, o.Volatility, epsilon)
+	return floatsMostlyEqual(r.Rating, o.Rating, epsilon) &&
+		floatsMostlyEqual(r.Deviation, o.Deviation, epsilon) &&
+		floatsMostlyEqual(r.Volatility, o.Volatility, epsilon)
 }
