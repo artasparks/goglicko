@@ -97,7 +97,7 @@ func TestAlgorithm(t *testing.T) {
 		t.Errorf("newDev %v != expNewDev %v", newDev, expNewDev)
 	}
 
-	newRating := newRating(p2.Rating, newDev, estImpPart)
+	newRating := newRatingVal(p2.Rating, newDev, estImpPart)
 	expNewRating := -0.2069
 	if !floatsMostlyEqual(newRating, expNewRating, 0.0001) {
 		t.Errorf("newRating %v != expNewRating %v", newRating, expNewRating)

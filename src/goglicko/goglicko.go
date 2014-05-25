@@ -181,7 +181,7 @@ func newDeviation(dev, newVol, estVar float64) float64 {
 }
 
 // Calculate the new Rating.
-func newRating(oldRating, newDev, estImpPart float64) float64 {
+func newRatingVal(oldRating, newDev, estImpPart float64) float64 {
 	return oldRating + newDev*newDev*estImpPart
 }
 
@@ -205,6 +205,11 @@ func CalculateRating(player *Rating, opponents []*Rating, res []Result) (*Rating
 	estImp := estVar * estImpPart
 	newVol := newVolatility(estVar, estImp, p2)
 	newDev := newDeviation(p2.Deviation, newVol, estVar)
-	newRating := newRating(p2.Rating, newDev, estImpPart)
-	return NewRating(newRating, newDev, newVol).FromGlicko2(), nil
+	newRating := newRatingVal(p2.Rating, newDev, estImpPart)
+	rt := NewRating(newRating, newDev, newVol).FromGlicko2()
+
+	if rt.Deviation > DefaultDev { // Upper bound by the Default Deviation.
+		rt.Deviation = DefaultDev
+	}
+	return rt, nil
 }
