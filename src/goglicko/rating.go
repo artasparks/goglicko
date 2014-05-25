@@ -1,25 +1,22 @@
 package goglicko
 
-// Constant transformation value, to transform between Glicko 2 and Glicko 1
-const scale = 173.7178
+import (
+	"fmt"
+)
 
 // Represents a player's rating and the confidence in a player's rating.
 type Rating struct {
 	Rating     float64 // Player's rating. Usually starts off at 1500.
-	Deviation  float64 // Confidence in a player's rating
+	Deviation  float64 // Confidence/uncertainty in a player's rating
 	Volatility float64 // Measures erratic performances
 }
 
 // Creates a default Rating using:
-// 	Rating     = 1500
-// 	Deviation  = 350
-// 	Volatility = 0.06
+// 	Rating     = DefaultRat
+// 	Deviation  = DefaultDev
+// 	Volatility = DefaultVol
 func DefaultRating() *Rating {
-	return &Rating{
-		1500,
-		350,
-		0.06,
-	}
+	return &Rating{DefaultRat, DefaultDev, DefaultVol}
 }
 
 // Creates a new custom Rating.
@@ -29,24 +26,32 @@ func NewRating(r, rd, s float64) *Rating {
 
 // Creates a new rating, converted from Glicko1 scaling to Glicko2 scaling.
 // This assumes the starting rating value is 1500.
-func (r *Rating) toGlicko2() *Rating {
+func (r *Rating) ToGlicko2() *Rating {
 	return NewRating(
-		(r.Rating-1500)/scale,
-		(r.Deviation)/scale,
+		(r.Rating-DefaultRat)/glicko2Scale,
+		(r.Deviation)/glicko2Scale,
 		r.Volatility)
 }
 
 // Creates a new rating, converted from Glicko2 scaling to Glicko1 scaling.
 // This assumes the starting rating value is 1500.
-func (r *Rating) fromGlicko2() *Rating {
+func (r *Rating) FromGlicko2() *Rating {
 	return NewRating(
-		r.Rating*scale+1500,
-		r.Deviation*scale,
+		r.Rating*glicko2Scale+DefaultRat,
+		r.Deviation*glicko2Scale,
 		r.Volatility)
 }
 
-type Result float64
+func (r *Rating) String() string {
+	return fmt.Sprintf("{Rating[%.3f] Deviation[%.3f] Volatility[%.3f]}",
+		r.Rating, r.Deviation, r.Volatility)
+}
 
-const Win Result = 1
-const Loss Result = 0
-const Draw Result = 0.5
+// Ensure that some other Rating is equal to this rating, given some epsilon. In
+// other words, find the error between this rating's values and the other
+// rating's values and make sure it's less than epsilon in absolute value.
+func (r *Rating) MostlyEquals(o *Rating, epsilon float64) bool {
+	return FloatsMostlyEqual(r.Rating, o.Rating, epsilon) &&
+		FloatsMostlyEqual(r.Deviation, o.Deviation, epsilon) &&
+		FloatsMostlyEqual(r.Volatility, o.Volatility, epsilon)
+}

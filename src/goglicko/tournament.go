@@ -5,14 +5,6 @@ import (
 	"math"
 )
 
-// Constrains the volatility. Typically set between 0.3 and 1.2.
-const (
-	tau = 0.3
-)
-
-// π^2
-const piSq = math.Pi * math.Pi
-
 // A Tournament represents a player and a series of matches played by
 // that player.
 type Tournament struct {
@@ -25,9 +17,6 @@ type Tournament struct {
 
 	// Results of the matches. Should be one of Win, Loss, or Draw
 	results []Result
-
-	// Tau: The volatility constraint
-	tau float64
 
 	// Various Caches to make calculations faster.
 	geeCache map[float64]float64
@@ -45,18 +34,17 @@ func NewTournament(p *Rating, o []*Rating, r []Result) (*Tournament, error) {
 	}
 
 	// Step 2: Convert to Glicko2 ratings
-	p2 := p.toGlicko2()
+	p2 := p.ToGlicko2()
 
 	var o2 = make([]*Rating, len(o), len(o))
 	for i := 0; i < len(o); i++ {
-		o2[i] = o[i].toGlicko2()
+		o2[i] = o[i].ToGlicko2()
 	}
 
 	return &Tournament{
 		p2,
 		o2,
 		r,
-		tau,
 		make(map[float64]float64),
 		make(map[int]float64),
 		make(map[float64]float64),
@@ -103,7 +91,7 @@ func (t *Tournament) newVolatility(estvar, estimp float64) float64 {
 	a := math.Log(t.player.Volatility)
 	deltaSq := sq(estimp)
 	phiSq := sq(t.player.Deviation)
-	tauSq := sq(t.tau)
+	tauSq := sq(DefaultTau)
 
 	f := func(x float64) float64 {
 		return conv(x, a, estvar, deltaSq, phiSq, tauSq)
@@ -117,9 +105,9 @@ func (t *Tournament) newVolatility(estvar, estimp float64) float64 {
 		val := -1.0
 		k := 1
 		for ; val < 0; k++ {
-			val = f(a - float64(k)*t.tau)
+			val = f(a - float64(k)*DefaultTau)
 		}
-		B = a - float64(k)*t.tau
+		B = a - float64(k)*DefaultTau
 	}
 	// Now: A < ln(sigma'^2) < B
 
@@ -147,40 +135,21 @@ func (t *Tournament) newVolatility(estvar, estimp float64) float64 {
 // Helper Functions //
 //////////////////////
 
-func sq(x float64) float64 {
-	return x * x
-}
-
 func (t *Tournament) eCached(i int) float64 {
 	if val, ok := t.etaCache[i]; ok {
 		return val
 	}
 	var o = t.opponents[i]
-	val := e(t.player.Rating, o.Rating, o.Deviation)
+	val := ee(t.player.Rating, o.Rating, o.Deviation)
 	t.etaCache[i] = val
 	return val
-}
-
-func e(r, ri, rdi float64) float64 {
-	return 1.0 / (1 + math.Exp(g(rdi)*(r-ri)))
 }
 
 func (t *Tournament) gCached(phi float64) float64 {
 	if val, ok := t.geeCache[phi]; ok {
 		return val
 	}
-	val := g(phi)
+	val := gee(phi)
 	t.geeCache[phi] = val
 	return val
-}
-
-func g(phi float64) float64 {
-	return 1 / math.Sqrt(1+3*phi*phi/piSq)
-}
-
-// Calculate the convergence f(x, a, delta^2, phi^2, tau^2). f(x) in the pdf.
-func conv(x, a, estvar, deltaSq, phiSq, tauSq float64) float64 {
-	eX := math.Exp(x)
-	return eX*(deltaSq-phiSq-estvar-eX)/
-		(2*sq(phiSq+estvar+eX)) - (x-a)/tauSq
 }
