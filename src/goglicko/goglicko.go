@@ -208,8 +208,10 @@ func CalculateRating(player *Rating, opponents []*Rating, res []Result) (*Rating
 	newRating := newRatingVal(p2.Rating, newDev, estImpPart)
 	rt := NewRating(newRating, newDev, newVol).FromGlicko2()
 
-	if rt.Deviation > DefaultDev { // Upper bound by the Default Deviation.
+	// Upper bound by the Default Deviation.
+	if rt.Deviation > DefaultDev { 
 		rt.Deviation = DefaultDev
 	}
+
 	return rt, nil
 }

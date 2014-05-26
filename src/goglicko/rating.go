@@ -55,3 +55,12 @@ func (r *Rating) MostlyEquals(o *Rating, epsilon float64) bool {
 		floatsMostlyEqual(r.Deviation, o.Deviation, epsilon) &&
 		floatsMostlyEqual(r.Volatility, o.Volatility, epsilon)
 }
+
+// Create a duplicate rating with the same values.
+func (r *Rating) Copy() *Rating {
+	return &Rating{
+		r.Rating,
+		r.Deviation,
+		r.Volatility,
+	}
+}
