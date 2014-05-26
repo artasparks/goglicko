@@ -5,7 +5,7 @@ A Glicko2 Implementation in Go (golang)
 
 To install, all you should need is
 
-    go get github.com/Kashomon/goglicko/src/goglicko
+    go get github.com/Kashomon/goglicko
 
 Usage
 -----
