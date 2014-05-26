@@ -173,8 +173,8 @@ func newVolatility(estVar, estImp float64, p *Rating) float64 {
 	return newVol
 }
 
-// Calculate the new Deviation.  This is just the inner product of the deviation
-// and the volatility.
+// Calculate the new Deviation.  This is just the L2-norm of the deviation and
+// the volatility.
 func newDeviation(dev, newVol, estVar float64) float64 {
 	phip := math.Sqrt(dev*dev + newVol*newVol)
 	return 1.0 / math.Sqrt(1.0/(phip*phip)+1.0/(estVar))
