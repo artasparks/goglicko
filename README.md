@@ -10,7 +10,11 @@ To install, all you should need is
 Usage
 -----
 
-To use:
+To install:
+
+    go get github.com/Kashomon/goglicko
+
+To use GoGlicko:
 
     import (
       github.com/Kashomon/goglicko
